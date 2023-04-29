@@ -1,5 +1,5 @@
 const imageUpload = document.getElementById('imageUpload')
-const video = document.getElementById('video')
+//const video = document.getElementById('video')
 
 // warnings and bans:
 var personMultipleHead = false;
@@ -10,92 +10,111 @@ var personVerificaton;
 var personBan;
 var personWarnings;
 
+let cameraButton = document.querySelector("#start-camera");
+let video = document.querySelector("#video");
+let clickPhoto = document.querySelector("#click-photo");
+let clickDoc = document.querySelector("#click-doc");
+let canvas = document.querySelector("#canvas");
 
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
     faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
     faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-]).then(start).then(startVideo)
+]).then(start)
+    //.then(startVideo)
 
 function start() {
-    document.body.append('models are loaded')
-    imageUpload.addEventListener('change', async () => {
-                  const image = await faceapi.bufferToImage(imageUpload.files[0])
-                  const detections = await faceapi.detectAllFaces(image)
-                      .withFaceLandmarks().withFaceDescriptors()
-                  document.body.append(detections.length)
-          })
+     document.body.append('models are loaded')
+//     imageUpload.addEventListener('change', async () => {
+//                   const image = await faceapi.bufferToImage(imageUpload.files[0])
+//                   const detections = await faceapi.detectAllFaces(image)
+//                       .withFaceLandmarks().withFaceDescriptors()
+//                   document.body.append(detections.length)
+//           })
 }
 
 
-function startVideo() {
+
+cameraButton.addEventListener('click', async function() {
     navigator.mediaDevices.getUserMedia(
         {video: true }).then(stream => {
-            video.srcObject = stream;
+        video.srcObject = stream;
 
         //const track = stream.getVideoTracks()[0];
         //imageCapture = new ImageCapture(track);
         //console.log( 'track', track);
-        }).catch(console.error)
-}
+    }).catch(console.error)
+});
 
-function onTakePhotoButtonClick() {
-    imageCapture
-        .takePhoto()
-        .then((blob) => createImageBitmap(blob))
-        .then((imageBitmap) => {
-            const canvas = document.querySelector("#takePhotoCanvas");
-            drawCanvas(canvas, imageBitmap);
-        })
-        .catch((error) => console.error(error));
-}
-
-function onGrabFrameButtonClick() {
-    imageCapture
-        .grabFrame()
-        .then((imageBitmap) => {
-            const canvas = document.querySelector("#grabFrameCanvas");
-            drawCanvas(canvas, imageBitmap);
-        })
-        .catch((error) => console.error(error));
-}
-
-function drawCanvas(canvas, img) {
-    canvas.width = getComputedStyle(canvas).width.split("px")[0];
-    canvas.height = getComputedStyle(canvas).height.split("px")[0];
-    let ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
-    let x = (canvas.width - img.width * ratio) / 2;
-    let y = (canvas.height - img.height * ratio) / 2;
-    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-    canvas
-        .getContext("2d")
-        .drawImage(
-            img,
-            0,
-            0,
-            img.width,
-            img.height,
-            x,
-            y,
-            img.width * ratio,
-            img.height * ratio
-        );
-}
-
-//document.querySelector("video").addEventListener("play", () => {
-//      document.querySelector("#grabFrameButton").disabled = false;
-//      document.querySelector("#takePhotoButton").disabled = false;
-//  });
-
+//function startVideo() {
+//     navigator.mediaDevices.getUserMedia(
+//         {video: true }).then(stream => {
+//             video.srcObject = stream;
+//
+//         //const track = stream.getVideoTracks()[0];
+//         //imageCapture = new ImageCapture(track);
+//         //console.log( 'track', track);
+//         }).catch(console.error)
+// }
 
 console.log(faceapi.nets)
+const container = document.createElement('div')
+container.style.position = 'relative'
+document.body.append(container)
 
-//const b1 = document.getElementById('button1')
-//
-// b1.addEventListener( "click", function() {
-//     console.log('clicked') }
-// )
+
+async function faceOnPhoto() {
+
+
+
+    const canvas = faceapi.createCanvasFromMedia(video)
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    let image_data_url = canvas.toDataURL('image/jpeg');
+    const image = await faceapi.fetchImage(image_data_url)
+    container.append(canvas)
+    container.append(image)
+    const displaySize = {width: image.width, height: image.height}
+    faceapi.matchDimensions(canvas, displaySize)
+    const detectionsPerson = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors()
+    const resizedDetections = faceapi.resizeResults( detectionsPerson, displaySize)
+    console.log('detections', detectionsPerson);
+    const labeledFaceDescriptors = await loadLabeledImage()
+    console.log('labeledFaceDescriptors', labeledFaceDescriptors)
+    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
+    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
+    console.log('results', results)
+    results.forEach((results, i) => {
+        const box = resizedDetections[i].detection.box
+        const drawBox = new faceapi.draw.DrawBox(box, {label: results.toString()})
+        drawBox.draw(canvas)
+    })
+}
+
+async function loadLabeledImage(){
+
+    //стоит как-то подтверрждать по документу имя человека.
+    const label = 'Ilia Vasilev';
+    //
+    const descriptions = [];
+    const canvas = faceapi.createCanvasFromMedia(video);
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    let image_data_url = canvas.toDataURL('image/jpeg');
+    const image = await faceapi.fetchImage(image_data_url);
+    const detectionsDoc = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
+    console.log('docDetection', detectionsDoc);
+    descriptions.push(detectionsDoc.descriptor);
+
+    return new faceapi.LabeledFaceDescriptors(label, descriptions);
+}
+
+var getLoadLabeledImage = false;
+
+//loadLabeledImage запускается 2 раза - как через кнопку, так и в функции faceOnPhoto
+
+clickPhoto.addEventListener('click', faceOnPhoto);
+clickDoc.addEventListener('click',  loadLabeledImage);
+
 
 video.addEventListener('play', () => {
     const canvas = faceapi.createCanvasFromMedia(video)

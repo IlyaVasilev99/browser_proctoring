@@ -23,14 +23,17 @@
         canvas {
             position: absolute;
         }
+
     </style>
 </head>
 <body>
 
-    <video  id="video" width="720" height="450" autoplay playsinline muted></video>
+    <video  id="video" width="360" height="200" autoplay playsinline muted></video>
 
-    <button id="b1">take a picture</button>
-    <input type="file" id="imageUpload">
+    <button id="start-camera">Start Camera</button>
+    <button id="click-photo">Get Face</button>
+    <button id="click-doc">Get Document. Click it first</button>
+    <canvas id="canvas" width="320" height="240"></canvas>
 
 </body>
 </html>
