@@ -63,10 +63,9 @@ const container = document.createElement('div')
 container.style.position = 'relative'
 document.body.append(container)
 
+//loadLabeledImage запускается 2 раза - как через кнопку, так и в функции faceOnPhoto
 
-async function faceOnPhoto() {
-
-
+clickPhoto.addEventListener('click', async function faceOnPhoto() {
 
     const canvas = faceapi.createCanvasFromMedia(video)
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -79,7 +78,7 @@ async function faceOnPhoto() {
     const detectionsPerson = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors()
     const resizedDetections = faceapi.resizeResults( detectionsPerson, displaySize)
     console.log('detections', detectionsPerson);
-    const labeledFaceDescriptors = await loadLabeledImage()
+    const labeledFaceDescriptors = await LLI;
     console.log('labeledFaceDescriptors', labeledFaceDescriptors)
     const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
     const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
@@ -89,12 +88,27 @@ async function faceOnPhoto() {
         const drawBox = new faceapi.draw.DrawBox(box, {label: results.toString()})
         drawBox.draw(canvas)
     })
-}
+    console.log('!!!', results[0]['_label'])
 
-async function loadLabeledImage(){
+    if (results[0]['_label'] == label) {
+        console.log('verification has ended successful')
+        document.body.append('verification has ended successful')
+        var a = document.createElement('a');
+        var linkText = document.createTextNode("my title text");
+        a.appendChild(linkText);
+        a.title = "my title text";
+        a.href = "http://example.com";
+        document.body.appendChild(a);
+    }
+});
+
+var LLI;
+var label;
+
+clickDoc.addEventListener('click',  async function loadLabeledImage(){
 
     //стоит как-то подтверрждать по документу имя человека.
-    const label = 'Ilia Vasilev';
+    label = 'Ilia Vasilev';
     //
     const descriptions = [];
     const canvas = faceapi.createCanvasFromMedia(video);
@@ -105,15 +119,14 @@ async function loadLabeledImage(){
     console.log('docDetection', detectionsDoc);
     descriptions.push(detectionsDoc.descriptor);
 
-    return new faceapi.LabeledFaceDescriptors(label, descriptions);
-}
 
-var getLoadLabeledImage = false;
+    LLI = new faceapi.LabeledFaceDescriptors(label, descriptions);
 
-//loadLabeledImage запускается 2 раза - как через кнопку, так и в функции faceOnPhoto
+    return LLI
 
-clickPhoto.addEventListener('click', faceOnPhoto);
-clickDoc.addEventListener('click',  loadLabeledImage);
+});
+
+
 
 
 video.addEventListener('play', () => {
