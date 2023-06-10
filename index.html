@@ -7,33 +7,51 @@
     <title>Face recognition</title>
     <script defer src="face-api.min.js"></script>
     <script defer src="webcameraFA.js"></script>
-    <script defer src="webcam.min.js"></script>
 
     <style>
         body {
-            margin: 0 ;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
             justify-content: center;
-            align-content: center;
-            flex-direction: column;
         }
-        canvas {
+        .button {
+            background-color: blue;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        .video {
             position: absolute;
-        }
+            left:0;
+            top:0;
+            z-index: 1;
 
+        }
+        .canvas {
+            position: absolute;
+            left:0;
+            top:0;
+            z-index: 2;
+
+        }
+        .div {
+            position: relative;
+        }
     </style>
 </head>
 <body>
 
-    <video  id="video" width="360" height="200" autoplay playsinline muted></video>
-
-    <button id="start-camera">Start Camera</button>
-    <button id="click-photo">Get Face</button>
-    <button id="click-doc">Get Document. Click it first</button>
-    <canvas id="canvas" width="320" height="240"></canvas>
+    <button id="start-camera" class="button">Start Camera</button>
+    <button id="click-photo" class="button">Get Face</button>
+    <button id="click-doc" class="button">Get Document. Click it first</button>
+    <div id="div-video" class="div">
+        <canvas id="canvas" width="360" height="240"></canvas>
+        <video  id="video" class="video"  width="360" height="240" autoplay playsinline muted></video>
+    </div>
 
 </body>
 </html>

@@ -91,13 +91,13 @@ clickPhoto.addEventListener('click', async function faceOnPhoto() {
     console.log('!!!', results[0]['_label'])
 
     if (results[0]['_label'] == label) {
-        console.log('verification has ended successful')
-        document.body.append('verification has ended successful')
+        console.log('verification has ended successful ')
+        document.body.append('verification has ended successful ')
         var a = document.createElement('a');
-        var linkText = document.createTextNode("my title text");
+        var linkText = document.createTextNode(" my title text ");
         a.appendChild(linkText);
         a.title = "my title text";
-        a.href = "http://example.com";
+        a.href = " http://example.com";
         document.body.appendChild(a);
     }
 });
@@ -118,20 +118,13 @@ clickDoc.addEventListener('click',  async function loadLabeledImage(){
     const detectionsDoc = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
     console.log('docDetection', detectionsDoc);
     descriptions.push(detectionsDoc.descriptor);
-
-
     LLI = new faceapi.LabeledFaceDescriptors(label, descriptions);
-
     return LLI
-
 });
-
-
-
 
 video.addEventListener('play', () => {
     const canvas = faceapi.createCanvasFromMedia(video)
-    document.body.append(canvas)
+    document.getElementById("div-video").append(canvas)
     const displaySize = {width: video.width, height: video.height}
     faceapi.matchDimensions(canvas, displaySize)
     setInterval(async () => {
@@ -143,12 +136,8 @@ video.addEventListener('play', () => {
             } else if (dLength == 0) {
                 console.log ( 'Warning! No face detected')
             } else { console.log ('Face detected...') }
-
-
         const resizedDetections = faceapi.resizeResults(detections, displaySize)
         canvas.getContext('2d').clearRect(0,0, canvas.width, canvas.height)
         faceapi.draw.drawDetections(canvas, resizedDetections)
-
     }, 1000)
-
 })
