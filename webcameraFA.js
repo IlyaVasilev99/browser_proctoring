@@ -1,3 +1,8 @@
+let name = prompt("Введите ФИО")
+//export const testTime = prompt("Введите время тестирования")
+//alert("Введено " + name)
+//console.log(testTime)
+document.body.append("Добрый день! нажмите кнокпку 'start camera'\n")
 const imageUpload = document.getElementById('imageUpload')
 //const video = document.getElementById('video')
 
@@ -25,7 +30,7 @@ Promise.all([
     //.then(startVideo)
 
 function start() {
-     document.body.append('models are loaded')
+     document.body.append("\nmodels are loaded\n")
 //     imageUpload.addEventListener('change', async () => {
 //                   const image = await faceapi.bufferToImage(imageUpload.files[0])
 //                   const detections = await faceapi.detectAllFaces(image)
@@ -37,33 +42,20 @@ function start() {
 
 
 cameraButton.addEventListener('click', async function() {
+    document.body.append("Теперь поднесите пропуск к видеокамере и нажмите 'get document'\n" +
+        "когда лицо на пропуске будет распознано.\n")
     navigator.mediaDevices.getUserMedia(
         {video: true }).then(stream => {
         video.srcObject = stream;
-
-        //const track = stream.getVideoTracks()[0];
-        //imageCapture = new ImageCapture(track);
-        //console.log( 'track', track);
     }).catch(console.error)
-});
 
-//function startVideo() {
-//     navigator.mediaDevices.getUserMedia(
-//         {video: true }).then(stream => {
-//             video.srcObject = stream;
-//
-//         //const track = stream.getVideoTracks()[0];
-//         //imageCapture = new ImageCapture(track);
-//         //console.log( 'track', track);
-//         }).catch(console.error)
-// }
+});
 
 console.log(faceapi.nets)
 const container = document.createElement('div')
 container.style.position = 'relative'
 document.body.append(container)
 
-//loadLabeledImage запускается 2 раза - как через кнопку, так и в функции faceOnPhoto
 
 clickPhoto.addEventListener('click', async function faceOnPhoto() {
 
@@ -91,13 +83,13 @@ clickPhoto.addEventListener('click', async function faceOnPhoto() {
     console.log('!!!', results[0]['_label'])
 
     if (results[0]['_label'] == label) {
-        console.log('verification has ended successful ')
-        document.body.append('verification has ended successful ')
+        console.log('verification has ended successful')
+        document.body.append('Verification has ended successful.\n')
         var a = document.createElement('a');
-        var linkText = document.createTextNode(" my title text ");
+        var linkText = document.createTextNode("\nstart proctoring");
         a.appendChild(linkText);
-        a.title = "my title text";
-        a.href = " http://example.com";
+        a.title = "next page";
+        a.href = "proctoring.html";
         document.body.appendChild(a);
     }
 });
@@ -107,8 +99,8 @@ var label;
 
 clickDoc.addEventListener('click',  async function loadLabeledImage(){
 
-    //стоит как-то подтверрждать по документу имя человека.
-    label = 'Ilia Vasilev';
+    document.body.append("\nНажмите кнопку 'Get Face', чтобы верифицировать себя.\n" )
+    label = name;
     //
     const descriptions = [];
     const canvas = faceapi.createCanvasFromMedia(video);
@@ -120,6 +112,7 @@ clickDoc.addEventListener('click',  async function loadLabeledImage(){
     descriptions.push(detectionsDoc.descriptor);
     LLI = new faceapi.LabeledFaceDescriptors(label, descriptions);
     return LLI
+
 });
 
 video.addEventListener('play', () => {
