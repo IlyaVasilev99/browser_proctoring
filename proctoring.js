@@ -9,11 +9,12 @@ var handler = function() {
      var sec = date.getSeconds();
     var min = date.getMinutes();
     document.getElementById("time").textContent = (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+    if (min == testTime) {alert('Proctoring is over!')}
     };
 setInterval(handler, 1000);
 handler();
 
-// if (min == testTime) {alert('Proctoring is over!')
+
 
 
 Promise.all([
