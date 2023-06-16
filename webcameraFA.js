@@ -6,6 +6,11 @@ document.body.append("Добрый день! нажмите кнокпку 'star
 const imageUpload = document.getElementById('imageUpload')
 //const video = document.getElementById('video')
 
+//var penalty_total = 0
+//var penalty_multihead = 0
+//var penalty_noFace = 0
+//var penalty_noFace3sec = 0
+
 // warnings and bans:
 var personMultipleHead = false;
 var personNoHead = false;
@@ -22,7 +27,7 @@ let clickDoc = document.querySelector("#click-doc");
 let canvas = document.querySelector("#canvas");
 
 Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
+    //faceapi.nets.tinyFaceDetector.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
     faceapi.nets.faceLandmark68Net.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
     faceapi.nets.faceRecognitionNet.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
     faceapi.nets.ssdMobilenetv1.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
@@ -87,21 +92,25 @@ clickPhoto.addEventListener('click', async function faceOnPhoto() {
         document.body.append('Verification has ended successful.\n')
         var a = document.createElement('a');
         var linkText = document.createTextNode("\nstart proctoring");
+        //var expLLI = LLI;
+        //var expLabel = label;
+        console.log(LLI,label)
         a.appendChild(linkText);
         a.title = "next page";
         a.href = "proctoring.html";
         document.body.appendChild(a);
+        //export {LLI, label}
     }
-});
 
-var LLI;
-var label;
+});
+let label;
+let LLI;
+
 
 clickDoc.addEventListener('click',  async function loadLabeledImage(){
 
     document.body.append("\nНажмите кнопку 'Get Face', чтобы верифицировать себя.\n" )
     label = name;
-    //
     const descriptions = [];
     const canvas = faceapi.createCanvasFromMedia(video);
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -122,15 +131,17 @@ video.addEventListener('play', () => {
     faceapi.matchDimensions(canvas, displaySize)
     setInterval(async () => {
         const detections = await faceapi.detectAllFaces(video,
-            new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks()
+            new faceapi.SsdMobilenetv1Options()).withFaceLandmarks()
             var dLength = detections.length;
             if (dLength >= 2) {
                 console.log( 'Warning! Detected more than one face')
             } else if (dLength == 0) {
                 console.log ( 'Warning! No face detected')
-            } else { console.log ('Face detected...') }
+            } else { console.log ('Face detected...') };
+
         const resizedDetections = faceapi.resizeResults(detections, displaySize)
         canvas.getContext('2d').clearRect(0,0, canvas.width, canvas.height)
         faceapi.draw.drawDetections(canvas, resizedDetections)
     }, 1000)
 })
+
