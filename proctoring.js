@@ -148,7 +148,7 @@ video.addEventListener('play', () => {
 //
 //
 function fetchScores(scores){
-    fetch('https://reqres.in/api/users', {
+    fetch('https://ilyavasilev99.github.io/browser_proctoring/scores', {
         method:'POST',
         headers: {
             'Accept': 'application/json',
