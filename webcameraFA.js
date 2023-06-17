@@ -1,15 +1,7 @@
 let name = prompt("Введите ФИО")
-//export const testTime = prompt("Введите время тестирования")
-//alert("Введено " + name)
-//console.log(testTime)
 document.body.append("Добрый день! нажмите кнокпку 'start camera'\n")
 const imageUpload = document.getElementById('imageUpload')
 //const video = document.getElementById('video')
-
-//var penalty_total = 0
-//var penalty_multihead = 0
-//var penalty_noFace = 0
-//var penalty_noFace3sec = 0
 
 // warnings and bans:
 var personMultipleHead = false;
@@ -19,6 +11,7 @@ var personDocument;
 var personVerificaton;
 var personBan;
 var personWarnings;
+const serverURL='https://reqres.in/api/users';
 
 let cameraButton = document.querySelector("#start-camera");
 let video = document.querySelector("#video");
@@ -32,7 +25,6 @@ Promise.all([
     faceapi.nets.faceRecognitionNet.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
     faceapi.nets.ssdMobilenetv1.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
 ]).then(start)
-    //.then(startVideo)
 
 function start() {
      document.body.append("\nmodels are loaded\n")
@@ -75,7 +67,7 @@ clickPhoto.addEventListener('click', async function faceOnPhoto() {
     const detectionsPerson = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors()
     const resizedDetections = faceapi.resizeResults( detectionsPerson, displaySize)
     console.log('detections', detectionsPerson);
-    const labeledFaceDescriptors = await LLI;
+    const labeledFaceDescriptors = await LFD;
     console.log('labeledFaceDescriptors', labeledFaceDescriptors)
     const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
     const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
@@ -92,19 +84,18 @@ clickPhoto.addEventListener('click', async function faceOnPhoto() {
         document.body.append('Verification has ended successful.\n')
         var a = document.createElement('a');
         var linkText = document.createTextNode("\nstart proctoring");
-        //var expLLI = LLI;
-        //var expLabel = label;
-        console.log(LLI,label)
+        console.log(LFD)
+        await sendVerification(LFD)
         a.appendChild(linkText);
         a.title = "next page";
         a.href = "proctoring.html";
         document.body.appendChild(a);
-        //export {LLI, label}
+        alert('SECOND PHASE');
     }
 
 });
-let label;
-let LLI;
+export let label;
+export let LFD;
 
 
 clickDoc.addEventListener('click',  async function loadLabeledImage(){
@@ -119,12 +110,12 @@ clickDoc.addEventListener('click',  async function loadLabeledImage(){
     const detectionsDoc = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
     console.log('docDetection', detectionsDoc);
     descriptions.push(detectionsDoc.descriptor);
-    LLI = new faceapi.LabeledFaceDescriptors(label, descriptions);
-    return LLI
+    LFD = new faceapi.LabeledFaceDescriptors(label, descriptions);
+    return LFD
 
 });
 
-video.addEventListener('play', () => {
+video.addEventListener('play', async function videoEvent() {
     const canvas = faceapi.createCanvasFromMedia(video)
     document.getElementById("div-video").append(canvas)
     const displaySize = {width: video.width, height: video.height}
@@ -145,3 +136,17 @@ video.addEventListener('play', () => {
     }, 1000)
 })
 
+
+async function sendVerification(LFD){
+    fetch(serverURL, {
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: JSON.stringify(LFD)
+    }).then(response => response.json())
+        .then(result => {
+            console.log(result);
+        });
+
+}

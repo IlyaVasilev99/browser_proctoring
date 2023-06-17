@@ -1,21 +1,24 @@
-//import {LLI,label} from './webcameraFA.js';
-//import {testTime} from '/webcameraFA.js';
-//alert(testTime);
-let totalScores = document.querySelector('.total_scores')
-var label = 'test name'
-var LLI;
-console.log(LLI,label)
+var dataServerUrl = 'https://reqres.in/api/users'
+const request = fetch(dataServerUrl)
+    .then(res => res.json()).
+    then(data => {return data});
 
-var isReadyToJSON = false;
+console.log('request ', request)
+
+let totalScores = document.querySelector('.total_scores');
+var label = 'test name';
+var LFD;
+console.log(LFD,label)
 document.body.append("Добрый день!")
 //document.body.append(testTime)
+
+
 
 
 let testTime = prompt("Введите количество минут для тестирования")
 console.log("установлено минут: " + testTime)
 
 function timer () {
-
     const date1 = new Date;
     var date2;
     var dateMin;
@@ -37,7 +40,8 @@ function timer () {
             let scores = {
                 "total": penalty_total,
                 "noFace": penalty_noFace,
-                "multiFace": penalty_multihead
+                "multiFace": penalty_multihead,
+                "labeledFaceDescriptor": LFD,
             }
 
             console.log('SCORES: ', scores)
@@ -134,10 +138,10 @@ video.addEventListener('play', () => {
         var detection = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
         console.log('Detection', detection);
         descriptions.push(detection.descriptor);
-        LLI = new faceapi.LabeledFaceDescriptors(label, descriptions);
+        LFD = new faceapi.LabeledFaceDescriptors(label, descriptions);
         var detectionsPerson = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors()
         var resizedDetections = faceapi.resizeResults( detectionsPerson, displaySize)
-        var labeledFaceDescriptors = await LLI;
+        var labeledFaceDescriptors = await LFD;
         console.log('labeledFaceDescriptors', labeledFaceDescriptors)
         var faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6)
         var results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor))
@@ -148,14 +152,12 @@ video.addEventListener('play', () => {
 //
 //
 function fetchScores(scores){
-    fetch('https://ilyavasilev99.github.io/browser_proctoring/scores', {
-        method:'GET',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+    fetch('https://reqres.in/api/users/', {
+       method:'POST',
+       headers: {
+           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: JSON.stringify({ name:'User 1'})
-    }).then(res => res.json())
-        .then(res => console.log(res));
+        body: JSON.stringify(scores)
+    }).then(response => response.json())
+        .then(result => console.log('send result: ', result));
 }
-//
