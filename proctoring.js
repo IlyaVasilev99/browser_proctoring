@@ -1,36 +1,48 @@
-var dataServerUrl = 'https://reqres.in/api/users'
-const request = fetch(dataServerUrl)
-    .then(res => res.json()).
-    then(data => {return data});
+var dataServerUrl = 'https://ptsv3.com/t/26101999/'
 
-console.log('request ', request)
+var dataObj;
+var DATA_FROM_SERVER;
+
+const request = fetch('https://reqres.in/api/users/')
+    .then(res => res.json())
+    .then(data => {
+        console.log('data',data);
+        dataObj = data;
+        DATA_FROM_SERVER = data;
+        return data
+        });
+
+console.log('DATA_FROM_SERVER ', await request, dataObj)
+//var testc = dataObj.total + 1;
+//console.log('testc ', testc)
 
 let totalScores = document.querySelector('.total_scores');
 var label = 'test name';
 var LFD;
 console.log(LFD,label)
 document.body.append("Добрый день!")
-//document.body.append(testTime)
 
 
 
 
 let testTime = prompt("Введите количество минут для тестирования")
+// let testTime = 1;
 console.log("установлено минут: " + testTime)
 
-function timer () {
+var timerSec;
+
+async function timer () {
     const date1 = new Date;
     var date2;
     var dateMin;
     var dateSec;
-    var timerSec;
     var timerId = setInterval(async () => {
         date2 = new Date;
         dateMin = date2.getMinutes() - date1.getMinutes();
         dateSec = date2.getSeconds() - date1.getSeconds();
         timerSec = testTime*60 - (dateMin*60 +dateSec);
         document.getElementById("time")
-            .textContent = ( 'осталось времени: '+parseInt(timerSec/60)+':'
+            .textContent = ( 'Осталось времени : '+parseInt(timerSec/60)+':'
             +(timerSec%60 < 10 ? "0" + timerSec%60 : timerSec%60 )
         )
         //console.log('timerMin',timerSec)
@@ -38,38 +50,38 @@ function timer () {
             alert('Proctoring is over!')
             clearInterval(timerId)
             let scores = {
+                "labeledFaceDescriptor": LFD,
                 "total": penalty_total,
                 "noFace": penalty_noFace,
                 "multiFace": penalty_multihead,
-                "labeledFaceDescriptor": LFD,
+                "ctrlPressed" : penalty_ctrlPressed,
+                "altPressed" : penalty_altPressed,
             }
 
             console.log('SCORES: ', scores)
-            totalScores.textContent = 'Scores:'+'Total score:' + scores.total +
-                'Multiface score:' + scores.multiFace +
-                'No face score:' + scores.noFace;
-            fetchScores(scores)
+
+            totalScores.textContent = 'Scores: \r\n'+'Total score:' + scores.total + '\r\n' +
+                'Multi-face score:' + scores.multiFace + '\r\n' +
+                'No face score:' + scores.noFace + '\r\n' +
+                'Ctrl button pressed:' + scores.ctrlPressed + '\r\n' +
+                'Alt button pressed:' + scores.ctrlPressed + '\r\n' +
+                'Прокторинг закончен, данные отправлены. \r\nВы можете закрыть эту страницу';
+            await fetchScores(scores)
             console.log('sending data to server...')
+            console.log('timerSec', timerSec)
+
         }
     }, 1000)
 }
 
-//var handler = function() {
-//     var date = new Date();
-//      var sec = date.getSeconds();
-//     var min = date.getMinutes();
-//     document.getElementById("time").textContent = (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
-//     if (min == testTime) {alert('Proctoring is over!')}
-//     };
-// setInterval(handler, 1000);
-// handler();
-
-var penalty_total = 0
-var penalty_multihead = 0
-var penalty_noFace = 0
-var penalty_noFace3sec = 0
-
-
+var penalty_total = 0;
+var penalty_multihead = 0;
+var penalty_noFace = 0;
+var penalty_noFace3sec = 0;
+var penalty_ctrlPressed = 0;
+var penalty_altPressed = 0;
+var recogFaceCheck;
+var faceCheck;
 
 Promise.all([
     //faceapi.nets.tinyFaceDetector.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
@@ -77,10 +89,9 @@ Promise.all([
     faceapi.nets.faceRecognitionNet.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
     faceapi.nets.ssdMobilenetv1.loadFromUri('https://ilyavasilev99.github.io/browser_proctoring/models'),
 ]).then(start).then(timer)
-//.then(startVideo)
 
 function start() {
-    document.body.append("\nmodels are loaded\n")
+    document.body.append("\nМодели загружены.\n")
 }
 
 navigator.mediaDevices.getUserMedia(
@@ -96,9 +107,22 @@ video.addEventListener('play', () => {
     document.getElementById("div-video").append(canvas)
     const displaySize = {width: video.width, height: video.height}
     faceapi.matchDimensions(canvas, displaySize)
-    setInterval(async () => {
+    document.onkeydown = function (event) {
+        if (event.ctrlKey) {
+            penalty_ctrlPressed+=1;
+            penalty_total+=1;
+            console.log("pressed 'Ctrl' key detected");
+        }
+        if (event.altKey) {
+            penalty_altPressed+=1;
+            penalty_total+=1;
+            console.log("pressed 'Alt' key detected");
+        }
+    }
+
+    faceCheck = setInterval(async () => {
         const detections = await faceapi.detectAllFaces(video,
-            new faceapi.SsdMobilenetv1Options()).withFaceLandmarks()
+            new faceapi.SsdMobilenetv1Options())
         var dLength = detections.length;
         if (dLength >= 2) {
             console.log('Warning! Detected more than one face')
@@ -118,13 +142,12 @@ video.addEventListener('play', () => {
         } else {
             console.log('Face detected...')
         }
-        ;
         resizedDetections = faceapi.resizeResults(detections, displaySize)
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
         faceapi.draw.drawDetections(canvas, resizedDetections)
 
     }, 1000)
-    setInterval(async () => {
+    recogFaceCheck = setInterval(async () => {
         console.log('penalty_total:', penalty_total, '\n',
             'penalty_noFace:', penalty_noFace, '\n',
             'penalty_multihead:', penalty_multihead, '\n',
@@ -149,15 +172,22 @@ video.addEventListener('play', () => {
     }, 10000)
 })
 
-//
-//
-function fetchScores(scores){
-    fetch('https://reqres.in/api/users/', {
-       method:'POST',
-       headers: {
-           'Content-Type': 'application/json; charset=UTF-8',
+async function fetchScores(scores){
+    fetch(dataServerUrl, {
+        mode: 'no-cors',
+        method:'POST',
+        headers: {
+           'Content-Type': 'application/json',
         },
         body: JSON.stringify(scores)
-    }).then(response => response.json())
-        .then(result => console.log('send result: ', result));
+    }).then(response => {
+        clearInterval(recogFaceCheck);
+        //clearInterval(faceCheck);
+
+        response.json();})
+        .then(result => {
+            console.log('send result and timersec: ', result);
+        });
 }
+
+

@@ -28,18 +28,25 @@
             position: absolute;
             left:0;
             top:0;
-            z-index: 1;
+            z-index: -1;
 
         }
-        .canvas {
+        canvas2 {
             position: absolute;
-            left:0;
-            top:0;
-            z-index: 2;
-
+            top: 0;
+            left: 0;
+        }
+        canvas1 {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         .div {
             position: relative;
+        }
+
+        .textBody{
+            white-space: pre;
         }
     </style>
 </head>
@@ -48,10 +55,13 @@
     <button id="start-camera" class="button">Start Camera</button>
     <button id="click-doc" class="button">Get Document</button>
     <button id="click-photo" class="button">Get Face</button>
+
     <div id="div-video" class="div">
-        <canvas id="canvas" width="360" height="240"></canvas>
-        <video  id="video" class="video"  width="360" height="240" autoplay playsinline muted></video>
+
+         <video  id="video" class="video"  width="360" height="240" autoplay playsinline muted></video>
     </div>
+    <h2 class="proctoringLink" width="10"></h2>
+    <h2 class="textBody"></h2>
 
 </body>
 </html>

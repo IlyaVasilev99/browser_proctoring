@@ -1,7 +1,7 @@
 let name = prompt("Введите ФИО")
-document.body.append("Добрый день! нажмите кнокпку 'start camera'\n")
+let textBody = document.querySelector('.textBody');
+textBody.textContent = ("Добрый день! нажмите кнокпку 'start camera'\r\n")
 const imageUpload = document.getElementById('imageUpload')
-//const video = document.getElementById('video')
 
 // warnings and bans:
 var personMultipleHead = false;
@@ -11,7 +11,8 @@ var personDocument;
 var personVerificaton;
 var personBan;
 var personWarnings;
-const serverURL='https://reqres.in/api/users';
+var br;
+const serverURL = 'https://ptsv3.com/t/26101999/';
 
 let cameraButton = document.querySelector("#start-camera");
 let video = document.querySelector("#video");
@@ -27,20 +28,13 @@ Promise.all([
 ]).then(start)
 
 function start() {
-     document.body.append("\nmodels are loaded\n")
-//     imageUpload.addEventListener('change', async () => {
-//                   const image = await faceapi.bufferToImage(imageUpload.files[0])
-//                   const detections = await faceapi.detectAllFaces(image)
-//                       .withFaceLandmarks().withFaceDescriptors()
-//                   document.body.append(detections.length)
-//           })
+    document.body.append("\r\nМодели загружены.\r\n")
+
 }
 
-
-
 cameraButton.addEventListener('click', async function() {
-    document.body.append("Теперь поднесите пропуск к видеокамере и нажмите 'get document'\n" +
-        "когда лицо на пропуске будет распознано.\n")
+    textBody.textContent=("Теперь поднесите пропуск к видеокамере и нажмите 'get document'\r\n" +
+        "когда лицо на пропуске будет распознано.\r\n")
     navigator.mediaDevices.getUserMedia(
         {video: true }).then(stream => {
         video.srcObject = stream;
@@ -49,22 +43,37 @@ cameraButton.addEventListener('click', async function() {
 });
 
 console.log(faceapi.nets)
-const container = document.createElement('div')
-container.style.position = 'relative'
-document.body.append(container)
+
 
 
 clickPhoto.addEventListener('click', async function faceOnPhoto() {
+    br = document.createElement('br');
+    document.body.appendChild(br);
+    const container = document.createElement('div2');
+    container.style.position = 'relative';
+    container.style.width = '640px';
+    container.style.height = '480px';
+    document.body.append(container)
+    let canvas1 = faceapi.createCanvasFromMedia(video);
 
-    const canvas = faceapi.createCanvasFromMedia(video)
-    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-    let image_data_url = canvas.toDataURL('image/jpeg');
-    const image = await faceapi.fetchImage(image_data_url)
-    container.append(canvas)
-    container.append(image)
-    const displaySize = {width: image.width, height: image.height}
-    faceapi.matchDimensions(canvas, displaySize)
-    const detectionsPerson = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors()
+    //canvas2.setAttribute("style", "position:absolute;top:0;left:0;z-index:2");
+    //let ctx = canvas1.getContext("2d");
+    let image_data_url = canvas1.toDataURL('image/jpeg');
+    let image1 = await faceapi.fetchImage(image_data_url);
+    image1.style.position = 'absolute';
+    image1.style.left = '0px';
+    image1.style.top = '0px';
+    let canvas2 = faceapi.createCanvasFromMedia(image1);
+    canvas2.style.position = 'absolute';
+    canvas2.style.left = '0px';
+    canvas2.style.top = '0px';
+    //context.drawImage(image1, 0 , 0);
+    container.append(image1);
+    container.append(canvas2);
+    //canvas1.getContext('2d').clearRect(image1, 0, 0, canvas1.width, canvas1.height);
+    const displaySize = {width: image1.width, height: image1.height}
+    faceapi.matchDimensions(canvas2, displaySize)
+    const detectionsPerson = await faceapi.detectAllFaces(image1).withFaceLandmarks().withFaceDescriptors()
     const resizedDetections = faceapi.resizeResults( detectionsPerson, displaySize)
     console.log('detections', detectionsPerson);
     const labeledFaceDescriptors = await LFD;
@@ -75,22 +84,33 @@ clickPhoto.addEventListener('click', async function faceOnPhoto() {
     results.forEach((results, i) => {
         const box = resizedDetections[i].detection.box
         const drawBox = new faceapi.draw.DrawBox(box, {label: results.toString()})
-        drawBox.draw(canvas)
+        drawBox.draw(canvas2)
     })
-    console.log('!!!', results[0]['_label'])
+
 
     if (results[0]['_label'] == label) {
-        console.log('verification has ended successful')
-        document.body.append('Verification has ended successful.\n')
+        console.log('recognition has ended successfully')
+        textBody.textContent=('Распознавание лица успешно выполнено. \r\n')
+        br = document.createElement('br')
         var a = document.createElement('a');
-        var linkText = document.createTextNode("\nstart proctoring");
+        a.style.fontSize = '40px';
+        a.style.textAlign = 'center';
+        a.style.position = 'relative';
+        a.style.top = '500px';
+        var linkText = document.createTextNode("\r\n Начать прокторинг");
         console.log(LFD)
         await sendVerification(LFD)
         a.appendChild(linkText);
         a.title = "next page";
         a.href = "proctoring.html";
+        document.body.appendChild(br);
         document.body.appendChild(a);
-        alert('SECOND PHASE');
+    }
+    else if (results[0]['_label'] == 'unknown') {
+        console.log('recognition failed')
+        textBody.textContent=('Распознавание лица не выполнено.\r\n' +
+            'Перезагрузите страницу и попробуйте еще раз.\r\n')
+
     }
 
 });
@@ -100,15 +120,16 @@ export let LFD;
 
 clickDoc.addEventListener('click',  async function loadLabeledImage(){
 
-    document.body.append("\nНажмите кнопку 'Get Face', чтобы верифицировать себя.\n" )
+    textBody.textContent=("Подождите, выполняется обработка...\r\n")
     label = name;
     const descriptions = [];
-    const canvas = faceapi.createCanvasFromMedia(video);
+    let canvas = faceapi.createCanvasFromMedia(video);
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
     let image_data_url = canvas.toDataURL('image/jpeg');
     const image = await faceapi.fetchImage(image_data_url);
     const detectionsDoc = await faceapi.detectSingleFace(image).withFaceLandmarks().withFaceDescriptor();
     console.log('docDetection', detectionsDoc);
+    textBody.textContent=("Обработка документа выполнена.\r\n" +"Нажмите кнопку 'Get Face', чтобы выполнить распознавание вашего лица.\r\n");
     descriptions.push(detectionsDoc.descriptor);
     LFD = new faceapi.LabeledFaceDescriptors(label, descriptions);
     return LFD
@@ -116,13 +137,13 @@ clickDoc.addEventListener('click',  async function loadLabeledImage(){
 });
 
 video.addEventListener('play', async function videoEvent() {
-    const canvas = faceapi.createCanvasFromMedia(video)
+    let canvas = faceapi.createCanvasFromMedia(video)
     document.getElementById("div-video").append(canvas)
     const displaySize = {width: video.width, height: video.height}
     faceapi.matchDimensions(canvas, displaySize)
     setInterval(async () => {
         const detections = await faceapi.detectAllFaces(video,
-            new faceapi.SsdMobilenetv1Options()).withFaceLandmarks()
+            new faceapi.SsdMobilenetv1Options())
             var dLength = detections.length;
             if (dLength >= 2) {
                 console.log( 'Warning! Detected more than one face')
@@ -139,14 +160,13 @@ video.addEventListener('play', async function videoEvent() {
 
 async function sendVerification(LFD){
     fetch(serverURL, {
+        mode: 'no-cors',
         method:'POST',
         headers: {
-            'Content-Type': 'application/json; charset=UTF-8',
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify(LFD)
     }).then(response => response.json())
-        .then(result => {
-            console.log(result);
-        });
-
+        .then(result => {console.log('result:',result); document.createTextNode("Данные о прокторинге отправлены на сервер. Прокторинг завершен\r\n"
+            + "Вы можете закрыть страницу\r\n" )});
 }
